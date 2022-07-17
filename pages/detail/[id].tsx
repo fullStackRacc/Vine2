@@ -164,6 +164,7 @@ const Detail = ({ postDetails }: IProps) => {
                 addComment={addComment}
                 comments={post.comments}
                 isPostingComment={isPostingComment}
+                
               />
 
         </div>
