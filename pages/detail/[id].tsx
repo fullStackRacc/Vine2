@@ -23,7 +23,9 @@ const Detail = ({ postDetails }: IProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVideoMuted, setIsVideoMuted] = useState(false)
   const router = useRouter();
-  const { userProfile } = useAuthStore()
+  const { userProfile }:any = useAuthStore()
+  const [comment, setComment] = useState('')
+  const [isPostingComment, setIsPostingComment] = useState(false)
 
   const onVideoClick = () => {
     if(playing) {
@@ -41,6 +43,35 @@ const Detail = ({ postDetails }: IProps) => {
       videoRef.current.muted = isVideoMuted
     }
   }, [post, isVideoMuted])
+
+  const handleLike = async (like: boolean) => {
+    if(userProfile) {
+      const { data } = await axios.put(`${BASE_URL}/api/like`, {
+        userId: userProfile._id,
+        postId: post._id,
+        like
+      })
+
+      setPost({ ...post, likes: data.likes })
+    }
+  }
+
+  const addComment = async (e) => {
+    e.preventDefault()
+
+    if(userProfile && comment) {
+      setIsPostingComment(true)
+
+      const { data } = await axios.put(`${BASE_URL}/api/post/${post._id}`, {
+        userId: userProfile._id,
+        comment
+      })
+
+      setPost({ ...post, comments: data.comments })
+      setComment('')
+      setIsPostingComment(false)
+    }
+  }
 
   if(!post) return null
 
@@ -92,10 +123,10 @@ const Detail = ({ postDetails }: IProps) => {
         <div className='lg:mt-20 mt-10'>
           <div className='flex gap-3 p-2 cursor-pointer font-semibold rounded'>
                   <div className=' ml-4 md:w-20 md:h-20 w-16 h-16'>
-                      <Link href=''>
+                      <Link href={`/profile/${userProfile._id}`}>
                           <>
                               <Image 
-                                  width={62}
+                                  width={62} 
                                   height={62}
                                   className='rounded-full'
                                   src={post.postedBy.image}
@@ -106,7 +137,7 @@ const Detail = ({ postDetails }: IProps) => {
                       </Link>
                   </div>
                   <div>
-                    <Link href="">
+                    <Link href={`/profile/${userProfile._id}`}>
                           <div className='mt-3 flex flex-col gap-2'>
                               <p className='flex gap-2 items-center md:text-md font-bold text-primary'>{post.postedBy.userName}{` `}
                               <GoVerified className='text-blue-400 text-md'/>
@@ -119,10 +150,21 @@ const Detail = ({ postDetails }: IProps) => {
               <p className='px-10 text-gray-600 text-lg'>{post.caption}</p>
               <div className='mt-10 px-10'>
                 {userProfile &&(
-                  <LikeButton />
+                  <LikeButton 
+                    likes = { post.likes }
+                    handleLike={() => handleLike(true)}
+                    handleDislike={() => handleLike(false)}
+                  />
+                  
                 )}
               </div>
-              <Comments />
+              <Comments 
+                comment={comment}
+                setComment={setComment}
+                addComment={addComment}
+                comments={post.comments}
+                isPostingComment={isPostingComment}
+              />
 
         </div>
       </div>
