@@ -15,6 +15,7 @@ import Comments from '../../components/Comments'
 
 interface IProps {
   postDetails: Video;
+  
 }
 
 const Detail = ({ postDetails }: IProps) => {
